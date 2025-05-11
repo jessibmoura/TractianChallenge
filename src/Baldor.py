@@ -13,6 +13,26 @@ import random, time
 import time
 
 class Baldor:
+    """
+        A web scraping class for extracting product information from the Baldor Electric Company catalog.
+
+        This class uses Selenium WebDriver to navigate through the Baldor website, handle cookie consent popups,
+        interact with product category pages, and extract detailed information such as specifications, manuals,
+        and images. Collected data is saved locally in JSON format along with any associated assets.
+
+        Attributes
+        ----------
+        headers : dict
+            HTTP headers used for requests (primarily the User-Agent).
+        driver : selenium.webdriver.Chrome
+            The Chrome WebDriver instance used for automation.
+        wait : selenium.webdriver.support.ui.WebDriverWait
+            Explicit wait handler for synchronizing element interaction.
+        specs_keys : list
+            List of specification keys to filter when parsing product data.
+        product_json : dict
+            Dictionary to store scraped product information.
+    """
     def __init__(self):
         self.headers = {"User-Agent": "Mozilla/5.0"}
         options = Options()
@@ -21,17 +41,23 @@ class Baldor:
 
         self.driver = webdriver.Chrome(options=options)
         self.wait = WebDriverWait(self.driver, 10)
-        self.product_categories = 0
 
         self.specs_keys = ["HP","VOLTS","RPM","FRAME"]
         self.product_json = {}
 
     def open(self):
-        """ Opens a navigation page loading the website url """
+        """
+        Opens the main catalog page of the Baldor website and handles any consent popups.
+        """
         self.driver.get("https://www.baldor.com/catalog")
         self.handle_consent_popup()
     
     def handle_consent_popup(self):
+        """
+        Checks for and accepts the cookie consent popup if present.
+        
+        This method attempts to click on the 'Allow All' button to proceed with website access.
+        """
         try:
             allow_all_btn = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, './/div[@class="adroll_button_text" and contains(text(), "Allow All")]')
@@ -43,11 +69,17 @@ class Baldor:
             logger.warning("No consent popup detected.")
     
     def load_products_page(self,target_category:str=None):
-        """ Loads a page specific of products category. 
-        
-        The random time.sleep functions on the code are intended to
-        simulate a more human-like interaction with the website, to try to
-        avoid any automation blockages.
+        """
+        Loads a product category page from the Baldor catalog.
+
+        Random delays are added to simulate human behavior and help 
+        avoid bot detection by the website.
+
+        Parameters
+        ----------
+        target_category : str, optional
+            The name of a specific category to open. If not provided,
+            a default category will be selected.
         """
         try:
             catalog_of_products = self.wait.until(EC.presence_of_all_elements_located(
@@ -82,7 +114,14 @@ class Baldor:
             time.sleep(3)
     
     def scrap_product(self,limit:int=1):
-        """ Function to get all information needed on specific product """
+        """
+        Scrapes detailed information of one or more products listed on the product category page.
+
+        Parameters
+        ----------
+        limit : int, optional
+            The number of products to scrape. Default is 1.
+        """
         products = self.wait.until(EC.presence_of_all_elements_located(
             (By.XPATH, './/a[@class="ng-binding"]') 
         ))
@@ -106,6 +145,12 @@ class Baldor:
             self.driver.back()
     
     def __get_metadata(self):
+        """
+        Extracts product metadata from the product detail page.
+
+        This includes the product ID, description, specifications (HP, VOLTS, RPM, FRAME),
+        and bill of materials (BOM), if available.
+        """
         soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
         # Get Product's title and description
@@ -163,6 +208,9 @@ class Baldor:
 
 
     def __get_manual_pdf(self):
+        """
+        Downloads the product manual PDF file, if available, and saves it to a local directory.
+        """
         try:
             pdf_element = self.driver.find_element(by=By.XPATH,value='.//a[@id="infoPacket"]')
             pdf_url = pdf_element.get_attribute('href')
@@ -185,6 +233,9 @@ class Baldor:
             logger.warning("No PDF link found on the page.")
         
     def __get_img(self):
+        """
+        Downloads the main image of the product and saves it to a local directory.
+        """
         try:
             img_element = self.driver.find_element(By.CLASS_NAME, 'product-image')
             img_url = img_element.get_attribute('src')
@@ -207,6 +258,9 @@ class Baldor:
             logger.warning("No image element found on the page.")
     
     def __save_json(self):
+        """
+        Saves the collected product information into a JSON file named after the product ID.
+        """
         p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
         json_path = f"output\\{p_id}.json"
 
@@ -215,5 +269,8 @@ class Baldor:
         logger.success(f"JSON file saved at: {json_path}")
 
     def exit(self):
+        """
+        Closes the browser and ends the WebDriver session.
+        """
         self.driver.quit()
     
