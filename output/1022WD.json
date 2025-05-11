@@ -1,0 +1,111 @@
+{
+    "product_id": "1022WD",
+    "description": "28C 4P GRNDR W/EXH",
+    "specs": {
+        "hp": "1",
+        "volts": "115/230",
+        "rpm": "1800"
+    },
+    "bom": [
+        {
+            "part_number": "OC3012F12SP",
+            "description": "CYL OIL CAP 12MFD/370V",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "RM1005A01SP",
+            "description": "BUMPER-  #2089 (R-R CO)",
+            "quantity": "4.000 EA"
+        },
+        {
+            "part_number": "G8EP3900A01SP",
+            "description": "ENDPLATE, MACH",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G8EP3900A01SP",
+            "description": "ENDPLATE, MACH",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G0FH1807A01SP",
+            "description": "GUARD,LH,10\"GRINDER",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "HA6101A01SP",
+            "description": "SUPPORT, TOOL REST MACH",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "HA6101A01SP",
+            "description": "SUPPORT, TOOL REST MACH",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G8AP1003A01SP",
+            "description": "TOOL REST",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G8AP1003A01SP",
+            "description": "TOOL REST",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G0AP1002SP",
+            "description": "SPARK BREAKER  ZINC PLATED",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "G0AP1002SP",
+            "description": "SPARK BREAKER  ZINC PLATED",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "B103",
+            "description": "WHEEL, 10X1X7/8X60 GRIT",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "XY8809A62SP",
+            "description": "7/8-9 NUT L.H. HEX (NC)",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "XY8809A12SP",
+            "description": "7/8-9 NUT R.H. HEX (NC)",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "GA25",
+            "description": "TOOL TRAY ASSY",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "HW1001A31",
+            "description": "LOCKWASHER 5/16, ZINC PLT.591 OD, .319 I",
+            "quantity": "2.000 EA"
+        },
+        {
+            "part_number": "HA6094A01SP",
+            "description": "CLAMP FOR SUPPORT ARM X  PLATED",
+            "quantity": "2.000 EA"
+        },
+        {
+            "part_number": "SP9000SP",
+            "description": "80600BJ A-H OR 1520237-2 TYCO;2PST,125/2",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "LB1624",
+            "description": "COMBINED WARNING LABEL, ISO/ANSI PICTOGR",
+            "quantity": "1.000 EA"
+        },
+        {
+            "part_number": "MN903",
+            "description": "INSTR MANUAL FOR GRINDERS 9/03",
+            "quantity": "1.000 EA"
+        }
+    ]
+}
