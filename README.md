@@ -48,10 +48,11 @@ uv run src/main.py
 ```
 
 ### 🗂 Output Structure
-
+```
 output/
 ├── 34-6610-3704.json
 ├── assets/
 │   └── 34-6610-3704/
 │       ├── manual.pdf
 │       └── img.jpg
+```
