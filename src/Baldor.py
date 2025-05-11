@@ -1,0 +1,193 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.chrome.options import Options
+from loguru import logger
+from bs4 import BeautifulSoup
+import requests
+import json
+import os
+import random, time
+import time
+
+class Baldor:
+    def __init__(self):
+        self.headers = {"User-Agent": "Mozilla/5.0"}
+        options = Options()
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36")
+
+        self.driver = webdriver.Chrome(options=options)
+        self.wait = WebDriverWait(self.driver, 10)
+        self.product_categories = 0
+
+        self.specs_keys = ["HP","VOLTS","RPM","FRAME"]
+        self.product_json = {}
+
+    def open(self):
+        """ Opens a navigation page loading the website url """
+        self.driver.get("https://www.baldor.com/catalog")
+    
+    def load_products_page(self,target_category:str=None):
+        """ Loads a page specific of products category. 
+        
+        The random time.sleep functions on the code are intended to
+        simulate a more human-like interaction with the website, to try to
+        avoid any automation blockages.
+        """
+        try:
+            catalog_of_products = self.wait.until(EC.presence_of_all_elements_located(
+                (By.XPATH, './/div[@class="ng-binding"]')
+            ))
+            time.sleep(random.uniform(2, 5))
+
+            logger.info(f"Found {len(catalog_of_products)} categories of products on online catalog")
+
+            if target_category is not None:
+                for element in catalog_of_products:
+                    if element.text.strip() == target_category:
+                        element.click()
+            else:
+                if catalog_of_products:
+                    self.driver.execute_script("arguments[0].click();", catalog_of_products[4])
+                else:
+                    raise Exception("No valid products found.")
+
+            time.sleep(random.uniform(2, 5))
+
+            logger.success("Successfully loaded products page:")
+            print(self.driver.title)
+
+        except TimeoutException:
+            logger.error("Timeout: Page elements did not load in time.")
+        except Exception as e:
+            logger.error("General error:", e)
+        
+        finally:
+            time.sleep(3)
+    
+    def scrap_product(self,limit:int=1):
+        """ Function to get all information needed on specific product """
+        products = self.wait.until(EC.presence_of_all_elements_located(
+            (By.XPATH, './/a[@class="ng-binding"]') 
+        ))
+        time.sleep(random.uniform(2, 5))
+        
+        for i in range(limit):
+            if products:
+                self.driver.execute_script("arguments[0].click();", products[i+1])
+            else:
+                raise Exception("No valid products found.")
+            
+            logger.success("Successfully loaded product detail page:")
+            print(self.driver.title)
+
+            self.__get_metadata()
+            self.__get_manual_pdf()
+            self.__get_img()
+            self.__save_json()
+
+            time.sleep(random.uniform(2, 5))
+            self.driver.back()
+    
+    def __get_metadata(self):
+        soup = BeautifulSoup(self.driver.page_source, "html.parser")
+
+        # Get Product's title and description
+        title_elem = soup.find("div", class_="page-title")
+        description_elem = soup.find("div", class_="product-description")
+
+        title = title_elem.get_text(strip=True) if title_elem else None
+        description = description_elem.get_text(strip=True) if description_elem else None
+
+        self.product_json["product_id"] = title
+        self.product_json["description"] = description
+
+        specs = {}
+        table = soup.find("table", class_="nameplate")
+        if table is not None:
+            rows = table.find_all("tr") if table else []
+            for row in rows:
+                headers = row.find_all("th")
+                values = row.find_all("td")
+                
+                for th, td in zip(headers, values):
+                    key = th.get_text(strip=True)
+                    value = td.get_text(strip=True)
+
+                    if key not in self.specs_keys:
+                        continue
+                    specs[key.lower()] = value
+        
+        self.product_json["specs"] = specs
+
+        bom = []
+        target_div = soup.find("div", attrs={"data-tab": "parts"})
+        if target_div is not None:
+            table = target_div.find("table", class_="data-table")
+            tbody = table.find("tbody")
+
+            for row in tbody.find_all("tr"):
+                cells = row.find_all("td")
+                if len(cells) == 3: 
+                    product = {
+                        "part_number": cells[0].get_text(strip=True),
+                        "description": cells[1].get_text(strip=True),
+                        "quantity": cells[2].get_text(strip=True)
+                    }
+                    bom.append(product)
+        
+        self.product_json["bom"] = bom
+
+
+    def __get_manual_pdf(self):
+        pdf_element = self.driver.find_element(by=By.XPATH,value='.//a[@id="infoPacket"]')
+        pdf_url = pdf_element.get_attribute('href')
+
+        p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
+        path = f"output\\assets\\{p_id}"
+        os.makedirs(path, exist_ok=True)
+
+        pdf_filename = f"{path}\\manual.pdf"
+
+        response = requests.get(pdf_url, headers=self.headers)
+
+        if response.status_code == 200:
+            with open(pdf_filename, 'wb') as f:
+                f.write(response.content)
+            logger.success(f"PDF downloaded successfully and saved at: {pdf_filename}")
+        else:
+            logger.error(f"Failed to download PDF. Status code: {response.status_code}")
+        
+    def __get_img(self):
+        img_element = self.driver.find_element(By.CLASS_NAME, 'product-image')
+        img_url = img_element.get_attribute('src')
+
+        p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
+        path = f"output\\assets\\{p_id}"
+        os.makedirs(path, exist_ok=True)
+
+        img_filename = f"{path}\\img.jpg"
+
+        response = requests.get(img_url, headers=self.headers)
+
+        if response.status_code == 200:
+            with open(img_filename, "wb") as f:
+                f.write(response.content)
+            logger.success(f"Image downloaded successfully and saved at: {img_filename}")
+        else:
+            logger.error(f"Failed to download image: {response.status_code}")
+    
+    def __save_json(self):
+        p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
+        json_path = f"output\\{p_id}.json"
+
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(self.product_json, f, ensure_ascii=False, indent=4)
+        logger.success(f"JSON file saved at: {json_path}")
+
+    def exit(self):
+        self.driver.quit()
+    
