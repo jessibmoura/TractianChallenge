@@ -1,0 +1,21 @@
+{
+    "product_id": "CD2003R-2",
+    "description": "3HP 1750/2300 240/240V C1811ATCZ SPG",
+    "specs": {
+        "hp": "3",
+        "rpm": "1750/2300",
+        "volts": "240"
+    },
+    "bom": [
+        {
+            "part_number": "419904051AB",
+            "description": "BRUSH EXTRUDER DUTY    C",
+            "quantity": "2.000 EA"
+        },
+        {
+            "part_number": "706364051AA",
+            "description": "BRHLD METRIC SPRING CHG.",
+            "quantity": "2.000 EA"
+        }
+    ]
+}

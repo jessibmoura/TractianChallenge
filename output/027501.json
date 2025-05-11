@@ -1,0 +1,14 @@
+{
+    "product_id": "027501",
+    "description": "IEC-375 EL CLUTCH 90V   5/8",
+    "specs": {
+        "volts": "90 VDC"
+    },
+    "bom": [
+        {
+            "part_number": "PK3681",
+            "description": "INSTAPAK QK RT,   1=150 PCS",
+            "quantity": "2.000 EA"
+        }
+    ]
+}

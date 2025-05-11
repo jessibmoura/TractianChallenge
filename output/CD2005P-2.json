@@ -1,0 +1,21 @@
+{
+    "product_id": "CD2005P-2",
+    "description": "5HP, 1750/2300RPM, DC, L186ATC, DPFG, TOD",
+    "specs": {
+        "hp": "5",
+        "rpm": "1750/2300",
+        "frame": "L 0186ATC"
+    },
+    "bom": [
+        {
+            "part_number": "034017012AB",
+            "description": "LCKW 1/4 STD. PLATED 034017012AF",
+            "quantity": "2.000 EA"
+        },
+        {
+            "part_number": "18044-4",
+            "description": "BRUSH, (2PC SET) GR.E41,210 SER.SGL",
+            "quantity": "2.000 EA"
+        }
+    ]
+}

@@ -1,0 +1,16 @@
+{
+    "product_id": "CD1805R",
+    "description": "5HP, 1750RPM, DC, 1810ATCZ, DPG,",
+    "specs": {
+        "hp": "5",
+        "rpm": "1750",
+        "volts": "200/100"
+    },
+    "bom": [
+        {
+            "part_number": "419904050A",
+            "description": "BRUSH                  N",
+            "quantity": "2.000 EA"
+        }
+    ]
+}

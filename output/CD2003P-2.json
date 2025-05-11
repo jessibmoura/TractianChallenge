@@ -1,0 +1,16 @@
+{
+    "product_id": "CD2003P-2",
+    "description": "L 0186ATC, 3HP, 1750RPM, 240, 120, DPFG, F3",
+    "specs": {
+        "hp": "3",
+        "rpm": "1750/2300",
+        "frame": "L 0186ATC"
+    },
+    "bom": [
+        {
+            "part_number": "034017012AB",
+            "description": "LCKW 1/4 STD. PLATED 034017012AF",
+            "quantity": "2.000 EA"
+        }
+    ]
+}
