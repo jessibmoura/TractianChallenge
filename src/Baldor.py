@@ -29,6 +29,18 @@ class Baldor:
     def open(self):
         """ Opens a navigation page loading the website url """
         self.driver.get("https://www.baldor.com/catalog")
+        self.handle_consent_popup()
+    
+    def handle_consent_popup(self):
+        try:
+            allow_all_btn = self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, './/div[@class="adroll_button_text" and contains(text(), "Allow All")]')
+            ))
+            allow_all_btn.click()
+            logger.info("Clicked on 'Allow All' cookie banner.")
+            time.sleep(4)
+        except TimeoutException:
+            logger.warning("No consent popup detected.")
     
     def load_products_page(self,target_category:str=None):
         """ Loads a page specific of products category. 
@@ -63,7 +75,8 @@ class Baldor:
         except TimeoutException:
             logger.error("Timeout: Page elements did not load in time.")
         except Exception as e:
-            logger.error("General error:", e)
+            logger.error("General error:")
+            print(e)
         
         finally:
             time.sleep(3)
@@ -120,6 +133,8 @@ class Baldor:
                     if key not in self.specs_keys:
                         continue
                     specs[key.lower()] = value
+        else:
+            logger.warning("No specs table (class='nameplate') found.")
         
         self.product_json["specs"] = specs
 
@@ -127,58 +142,69 @@ class Baldor:
         target_div = soup.find("div", attrs={"data-tab": "parts"})
         if target_div is not None:
             table = target_div.find("table", class_="data-table")
-            tbody = table.find("tbody")
+            if table:
+                tbody = table.find("tbody")
 
-            for row in tbody.find_all("tr"):
-                cells = row.find_all("td")
-                if len(cells) == 3: 
-                    product = {
-                        "part_number": cells[0].get_text(strip=True),
-                        "description": cells[1].get_text(strip=True),
-                        "quantity": cells[2].get_text(strip=True)
-                    }
-                    bom.append(product)
+                for row in tbody.find_all("tr"):
+                    cells = row.find_all("td")
+                    if len(cells) == 3: 
+                        product = {
+                            "part_number": cells[0].get_text(strip=True),
+                            "description": cells[1].get_text(strip=True),
+                            "quantity": cells[2].get_text(strip=True)
+                        }
+                        bom.append(product)
+            else:
+                logger.warning("No BOM table (class='data-table') found inside parts div.")
+        else:
+            logger.warning("No div with data-tab='parts' found.")
         
         self.product_json["bom"] = bom
 
 
     def __get_manual_pdf(self):
-        pdf_element = self.driver.find_element(by=By.XPATH,value='.//a[@id="infoPacket"]')
-        pdf_url = pdf_element.get_attribute('href')
+        try:
+            pdf_element = self.driver.find_element(by=By.XPATH,value='.//a[@id="infoPacket"]')
+            pdf_url = pdf_element.get_attribute('href')
 
-        p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
-        path = f"output\\assets\\{p_id}"
-        os.makedirs(path, exist_ok=True)
+            p_id = self.product_json["product_id"] if self.product_json["product_id"] is not None else "Unidentified"
+            path = f"output\\assets\\{p_id}"
+            os.makedirs(path, exist_ok=True)
 
-        pdf_filename = f"{path}\\manual.pdf"
+            pdf_filename = f"{path}\\manual.pdf"
 
-        response = requests.get(pdf_url, headers=self.headers)
+            response = requests.get(pdf_url, headers=self.headers)
 
-        if response.status_code == 200:
-            with open(pdf_filename, 'wb') as f:
-                f.write(response.content)
-            logger.success(f"PDF downloaded successfully and saved at: {pdf_filename}")
-        else:
-            logger.error(f"Failed to download PDF. Status code: {response.status_code}")
+            if response.status_code == 200:
+                with open(pdf_filename, 'wb') as f:
+                    f.write(response.content)
+                logger.success(f"PDF downloaded successfully and saved at: {pdf_filename}")
+            else:
+                logger.error(f"Failed to download PDF. Status code: {response.status_code}")
+        except Exception:
+            logger.warning("No PDF link found on the page.")
         
     def __get_img(self):
-        img_element = self.driver.find_element(By.CLASS_NAME, 'product-image')
-        img_url = img_element.get_attribute('src')
+        try:
+            img_element = self.driver.find_element(By.CLASS_NAME, 'product-image')
+            img_url = img_element.get_attribute('src')
 
-        p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
-        path = f"output\\assets\\{p_id}"
-        os.makedirs(path, exist_ok=True)
+            p_id = self.product_json["product_id"] if self.product_json["product_id"] is not None else "Unidentified"
+            path = f"output\\assets\\{p_id}"
+            os.makedirs(path, exist_ok=True)
 
-        img_filename = f"{path}\\img.jpg"
+            img_filename = f"{path}\\img.jpg"
 
-        response = requests.get(img_url, headers=self.headers)
+            response = requests.get(img_url, headers=self.headers)
 
-        if response.status_code == 200:
-            with open(img_filename, "wb") as f:
-                f.write(response.content)
-            logger.success(f"Image downloaded successfully and saved at: {img_filename}")
-        else:
-            logger.error(f"Failed to download image: {response.status_code}")
+            if response.status_code == 200:
+                with open(img_filename, "wb") as f:
+                    f.write(response.content)
+                logger.success(f"Image downloaded successfully and saved at: {img_filename}")
+            else:
+                logger.error(f"Failed to download image: {response.status_code}")
+        except Exception:
+            logger.warning("No image element found on the page.")
     
     def __save_json(self):
         p_id = self.product_json["product_id"] if self.product_json["product_id"] != None else "Unidentified"
